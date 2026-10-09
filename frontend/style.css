@@ -1,0 +1,32 @@
+:root{--v:#7c3aed;--p:#ec4899;--bg:#faf5ff;--t:#2e1065;--l:#f3e8ff}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--t)}
+nav{display:flex;gap:1rem;align-items:center;padding:.8rem 1.5rem;background:linear-gradient(90deg,var(--v),var(--p));color:#fff}
+nav span{margin-left:auto}
+main{padding:0 1rem 2rem}
+.hero{text-align:center;padding:3rem 1rem 1rem}
+.hero h1{font-size:2.6rem;margin:0;background:linear-gradient(90deg,var(--v),var(--p));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{background:#fff;border-radius:16px;padding:1.2rem;margin:1rem auto;box-shadow:0 4px 20px #7c3aed22;max-width:900px;overflow-x:auto}
+.auth{max-width:380px}
+input,select{width:100%;padding:.7rem;margin:.4rem 0;border:1px solid #e9d5ff;border-radius:10px;font:inherit;background:#fff}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--p);outline-offset:1px}
+.btn{background:linear-gradient(90deg,var(--v),var(--p));color:#fff;border:0;padding:.7rem 1.2rem;border-radius:10px;cursor:pointer;font:inherit}
+.btn.sm{padding:.35rem .8rem;font-size:.85rem}
+.btn.ghost{background:#fff;color:var(--v);border:1px solid var(--v)}
+.auth .btn{width:100%;margin-top:.5rem}
+.tabs{display:flex;gap:.5rem;margin-bottom:.8rem}
+.tabs button{flex:1;padding:.6rem;border:0;background:var(--l);border-radius:10px;cursor:pointer;font:inherit}
+.tabs .on{background:var(--v);color:#fff}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:.6rem;border-bottom:1px solid var(--l);white-space:nowrap}
+th{color:var(--v)}
+.b{padding:.2rem .6rem;border-radius:99px;font-size:.8rem;background:var(--l)}
+.b.confirmed,.b.approved,.b.completed{background:#dcfce7;color:#166534}
+.b.cancelled,.b.rejected{background:#fee2e2;color:#991b1b}
+.b.pending{background:#fce7f3;color:#9d174d}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;max-width:900px;margin:1rem auto}
+.stats .card{text-align:center;margin:0}
+.stats h3{font-size:1.8rem;margin:0;color:var(--p)}
+.row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:.6rem}
+.ok{color:#166534}.err{color:#b91c1c}.muted{color:#8b7aa8;font-size:.85rem}
+@media(max-width:600px){.row,.stats{grid-template-columns:1fr}}

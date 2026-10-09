@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediBook</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="hero"><h1>🩺 MediBook</h1><p>Find a doctor, book a slot, pay the consultation fee online.</p></div>
+<div class="card auth">
+ <div class="tabs"><button id="tl" class="on" onclick="tab(0)">Log in</button><button id="tr" onclick="tab(1)">Register</button></div>
+ <div id="msg"></div>
+ <form onsubmit="go(event)">
+  <div id="rg" hidden>
+   <input id="nm" placeholder="Full name">
+   <select id="role" onchange="$('dx').hidden=this.value!='doctor'"><option value="patient">I'm a patient</option><option value="doctor">I'm a doctor</option></select>
+   <div id="dx" hidden><input id="spec" placeholder="Specialization (e.g. Dermatologist)"><input id="fee" type="number" min="1" placeholder="Consultation fee (₹)"></div>
+  </div>
+  <input id="email" type="email" placeholder="Email" required>
+  <input id="password" type="password" placeholder="Password" required>
+  <button class="btn" id="sub">Log in</button>
+ </form>
+ <p class="muted">Admin demo: admin@care.com / admin123</p>
+</div>
+<script src="app.js"></script>
+<script>
+let reg=0;
+function tab(n){reg=n;$('rg').hidden=!n;$('tl').className=n?'':'on';$('tr').className=n?'on':'';$('sub').textContent=n?'Create account':'Log in'}
+async function go(e){e.preventDefault();const m=$('msg');
+ try{
+  if(reg){const d=await api('/register','POST',{name:$('nm').value,email:$('email').value,password:$('password').value,
+   role:$('role').value,specialization:$('spec').value,fee:+$('fee').value});tab(0);m.className='ok';m.textContent=d.message}
+  else{const d=await api('/login','POST',{email:$('email').value,password:$('password').value});
+   localStorage.token=d.token;localStorage.user=JSON.stringify(d.user);location='dashboard.html'}
+ }catch(x){m.className='err';m.textContent=x.message}}
+</script></body></html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediBook · Dashboard</title><link rel="stylesheet" href="style.css"></head><body>
+<nav><b>🩺 MediBook</b><span id="who"></span><button class="btn sm ghost" onclick="localStorage.clear();location='index.html'">Log out</button></nav>
+<main id="root"></main>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="app.js"></script>
+<script>
+const u=JSON.parse(localStorage.user||'null');if(!u)location='index.html';
+$('who').textContent=u.name+' ('+u.role+')';
+const E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const badge=s=>`<span class="b ${s}">${s}</span>`;
+const rows=(l,act)=>l.length?`<table><tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Fee</th><th>Status</th><th></th></tr>`+
+ l.map(a=>`<tr><td>${a.appt_date}</td><td>${a.appt_time}</td><td>${E(a.patient)}</td><td>Dr. ${E(a.doctor)}</td><td>₹${a.amount}${a.paid?' ✓':''}</td><td>${badge(a.status)}</td><td>${act(a)}</td></tr>`).join('')+'</table>'
+ :'<p class="muted">No appointments yet.</p>';
+const run=async f=>{try{await f()}catch(e){alert(e.message)}init()};
+const st=(id,s)=>run(()=>api('/appointments/'+id,'PATCH',{status:s}));
+const dv=(id,s)=>run(()=>api('/admin/doctors/'+id,'PATCH',{status:s}));
+
+async function patient(){
+ const[docs,ap]=await Promise.all([api('/doctors'),api('/appointments')]);
+ $('root').innerHTML=`<div class="card"><h2>Book an appointment</h2>
+ ${docs.length?`<select id="doc">${docs.map(d=>`<option value="${d.id}">Dr. ${E(d.name)} — ${E(d.specialization)} (₹${d.fee})</option>`).join('')}</select>
+ <div class="row"><input id="rs" placeholder="Reason for visit"><input id="dt" type="date" min="${new Date().toISOString().slice(0,10)}"><input id="tm" type="time"></div>
+ <button class="btn" onclick="book()">Book and pay fee</button>`:'<p class="muted">No doctors are available yet. Check back after an admin approves one.</p>'}</div>
+ <div class="card"><h2>My appointments</h2>${rows(ap,a=>['pending','confirmed'].includes(a.status)?`<button class="btn sm ghost" onclick="st(${a.id},'cancelled')">Cancel</button>`:'')}</div>`}
+
+async function book(){
+ try{
+  const o=await api('/appointments','POST',{doctor_id:+$('doc').value,appt_date:$('dt').value,appt_time:$('tm').value,reason:$('rs').value});
+  if(o.demo){await api(`/appointments/${o.id}/pay`,'POST',{});alert('Booked! (demo payment — no money charged)');return init()}
+  new Razorpay({key:o.key,order_id:o.order.id,amount:o.order.amount,currency:'INR',name:'MediBook',description:'Consultation fee',
+   handler:async r=>{await api(`/appointments/${o.id}/pay`,'POST',r);init()},
+   modal:{ondismiss:async()=>{await api('/appointments/'+o.id,'PATCH',{status:'cancelled'});init()}}}).open();
+ }catch(e){alert(e.message)}}
+
+async function doctor(){
+ const ap=await api('/appointments');
+ $('root').innerHTML=`<div class="card"><h2>My appointments</h2>${rows(ap,a=>a.status=='confirmed'?
+ `<button class="btn sm" onclick="st(${a.id},'completed')">Mark done</button> <button class="btn sm ghost" onclick="st(${a.id},'cancelled')">Cancel</button>`:'')}</div>`}
+
+async function admin(){
+ const[ds,ap]=await Promise.all([api('/admin/doctors'),api('/appointments')]);
+ const rev=ap.filter(a=>a.paid&&a.status!='cancelled').reduce((s,a)=>s+a.amount,0);
+ $('root').innerHTML=`<div class="stats"><div class="card"><h3>${ds.length}</h3>Doctors</div><div class="card"><h3>${ap.length}</h3>Appointments</div><div class="card"><h3>₹${rev}</h3>Fees collected</div></div>
+ <div class="card"><h2>Doctors</h2><table><tr><th>Name</th><th>Speciality</th><th>Fee</th><th>Status</th><th></th></tr>
+ ${ds.map(d=>`<tr><td>Dr. ${E(d.name)}</td><td>${E(d.specialization)}</td><td>₹${d.fee}</td><td>${badge(d.status)}</td>
+ <td><button class="btn sm" onclick="dv(${d.id},'approved')">Approve</button> <button class="btn sm ghost" onclick="dv(${d.id},'rejected')">Reject</button></td></tr>`).join('')}</table></div>
+ <div class="card"><h2>All appointments</h2>${rows(ap,()=>'')}</div>`}
+
+const init=()=>({patient,doctor,admin})[u.role]().catch(e=>{if(/Unauthorized/.test(e.message)){localStorage.clear();location='index.html'}else alert(e.message)});
+init();
+</script></body></html>
