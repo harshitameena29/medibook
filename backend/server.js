@@ -3,8 +3,9 @@ const express=require('express'),mysql=require('mysql2/promise'),bcrypt=require(
 jwt=require('jsonwebtoken'),crypto=require('crypto'),path=require('path');
 const app=express();app.use(express.json());
 app.use(express.static(path.join(__dirname,'../frontend'),{setHeaders:r=>r.setHeader('Cache-Control','no-cache')}));
-const db=mysql.createPool({host:process.env.DB_HOST||'localhost',user:process.env.DB_USER||'root',
- password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'medibook',dateStrings:true});
+const db=mysql.createPool({host:process.env.DB_HOST||'localhost',port:+process.env.DB_PORT||3306,user:process.env.DB_USER||'root',
+ password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'medibook',dateStrings:true,
+ ssl:process.env.DB_SSL==='true'?{rejectUnauthorized:false}:undefined}); // DB_SSL=true for hosted MySQL (Aiven, TiDB, etc.)
 const S=process.env.JWT_SECRET||'dev_secret';
 const rzp=process.env.RAZORPAY_KEY_ID?new(require('razorpay'))({key_id:process.env.RAZORPAY_KEY_ID,key_secret:process.env.RAZORPAY_KEY_SECRET}):null;
 const wrap=f=>(q,s,n)=>f(q,s,n).catch(e=>{console.error(e);
